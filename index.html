@@ -450,59 +450,61 @@
     </div>
 
     <script>
-        // Load cars from localStorage or use defaults
-        let cars;
+        // Default car data
+        const DEFAULT_CARS = [
+            {
+                name: "טויוטה פריוס",
+                year: "2014",
+                license: "4658830",
+                test: "24/02/26",
+                mandatoryInsurance: { company: "הפניקס", date: "30/09/26" },
+                comprehensiveInsurance: { type: "צד ג'", company: "הפניקס", date: "30/09/26" },
+                drivers: "ויטור ושרה",
+                notes: "להוסיף כל נהג, לשנות שם שרה"
+            },
+            {
+                name: "סקודה",
+                year: "2018",
+                license: "37354601",
+                test: "18/02/26",
+                mandatoryInsurance: { company: "ביטוח ישיר", date: "30/11/26" },
+                comprehensiveInsurance: { type: "מקיף", company: "ביטוח ישיר", date: "30/11/26" },
+                drivers: "כל נהג מגיל 30 שנים",
+                notes: ""
+            },
+            {
+                name: "פורד פוקוס",
+                year: "2007",
+                license: "4251962",
+                test: "28/01/27",
+                mandatoryInsurance: { company: "ביטוח ישיר", date: "30/04/26" },
+                comprehensiveInsurance: { type: "צד ג'", company: "ביטוח ישיר", date: "30/04/26" },
+                drivers: "אסתר וגילי",
+                notes: "חסר עותק רישיון"
+            },
+            {
+                name: "מזדה 2",
+                year: "2009",
+                license: "9797165",
+                test: "10/05/26",
+                mandatoryInsurance: { company: "הפול", date: "31/01/26" },
+                comprehensiveInsurance: { type: "צד ג'", company: "שומרה", date: "31/10/26" },
+                drivers: "כולם מעל גיל 46",
+                notes: "לחדש ביטוח חובה - לשאול את לריסה"
+            }
+        ];
+
+        // Initialize cars
+        let cars = DEFAULT_CARS;
+
+        // Try to load from localStorage
         try {
             const savedCars = localStorage.getItem('cars');
-            cars = savedCars ? JSON.parse(savedCars) : null;
+            if (savedCars) {
+                cars = JSON.parse(savedCars);
+            }
         } catch (e) {
-            console.error('Error loading from localStorage:', e);
-            cars = null;
-        }
-        
-        if (!cars || cars.length === 0) {
-            cars = [
-                {
-                    name: "טויוטה פריוס",
-                    year: "2014",
-                    license: "4658830",
-                    test: "24/02/26",
-                    mandatoryInsurance: { company: "הפניקס", date: "30/09/26" },
-                    comprehensiveInsurance: { type: "צד ג'", company: "הפניקס", date: "30/09/26" },
-                    drivers: "ויטור ושרה",
-                    notes: "להוסיף כל נהג, לשנות שם שרה"
-                },
-                {
-                    name: "סקודה",
-                    year: "2018",
-                    license: "37354601",
-                    test: "18/02/26",
-                    mandatoryInsurance: { company: "ביטוח ישיר", date: "30/11/26" },
-                    comprehensiveInsurance: { type: "מקיף", company: "ביטוח ישיר", date: "30/11/26" },
-                    drivers: "כל נהג מגיל 30 שנים",
-                    notes: ""
-                },
-                {
-                    name: "פורד פוקוס",
-                    year: "2007",
-                    license: "4251962",
-                    test: "28/01/27",
-                    mandatoryInsurance: { company: "ביטוח ישיר", date: "30/04/26" },
-                    comprehensiveInsurance: { type: "צד ג'", company: "ביטוח ישיר", date: "30/04/26" },
-                    drivers: "אסתר וגילי",
-                    notes: "חסר עותק רישיון"
-                },
-                {
-                    name: "מזדה 2",
-                    year: "2009",
-                    license: "9797165",
-                    test: "10/05/26",
-                    mandatoryInsurance: { company: "הפול", date: "31/01/26" },
-                    comprehensiveInsurance: { type: "צד ג'", company: "שומרה", date: "31/10/26" },
-                    drivers: "כולם מעל גיל 46",
-                    notes: "לחדש ביטוח חובה - לשאול את לריסה"
-                }
-            ];
+            console.log('localStorage not available, using default data');
         }
 
         let currentEditIndex = -1;
@@ -510,10 +512,8 @@
         function saveCars() {
             try {
                 localStorage.setItem('cars', JSON.stringify(cars));
-                console.log('Cars saved successfully');
             } catch (e) {
-                console.error('Error saving to localStorage:', e);
-                alert('שגיאה בשמירת הנתונים');
+                console.log('Cannot save to localStorage');
             }
         }
 
@@ -596,14 +596,14 @@
         function renderCars() {
             const carsContainer = document.getElementById('cars');
             
-            carsContainer.innerHTML = cars.map(car => {
+            carsContainer.innerHTML = cars.map((car, index) => {
                 const testDays = getDaysUntil(car.test);
                 const mandatoryDays = getDaysUntil(car.mandatoryInsurance.date);
                 const compDays = getDaysUntil(car.comprehensiveInsurance.date);
 
                 return `
                     <div class="car-card">
-                        <button class="edit-btn" onclick="openEditModal(${cars.indexOf(car)})">
+                        <button class="edit-btn" onclick="openEditModal(${index})">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
                             </svg>
@@ -737,13 +737,10 @@
             notificationBtn.disabled = true;
             notificationStatus.innerHTML = '<span class="enabled">✓ התראות מופעלות</span>';
             
-            // Show test notification
             new Notification('תזכורות רכבים מופעלות! 🚗', {
-                body: 'תקבל התראות לפני תאריכי חידוש',
-                icon: '🚗'
+                body: 'תקבל התראות לפני תאריכי חידוש'
             });
 
-            // Check for upcoming renewals daily
             checkAndNotify();
             setInterval(checkAndNotify, 24 * 60 * 60 * 1000);
         }
@@ -756,22 +753,19 @@
 
                 if ([30, 14, 7, 3, 1].includes(testDays)) {
                     new Notification(`תזכורת טסט - ${car.name}`, {
-                        body: `טסט יפוג ${getDaysText(testDays)} (${car.test})`,
-                        icon: '🔧'
+                        body: `טסט יפוג ${getDaysText(testDays)} (${car.test})`
                     });
                 }
 
                 if ([30, 14, 7, 3, 1].includes(mandatoryDays)) {
                     new Notification(`תזכורת ביטוח חובה - ${car.name}`, {
-                        body: `ביטוח חובה יפוג ${getDaysText(mandatoryDays)} (${car.mandatoryInsurance.company})`,
-                        icon: '🛡️'
+                        body: `ביטוח חובה יפוג ${getDaysText(mandatoryDays)} (${car.mandatoryInsurance.company})`
                     });
                 }
 
                 if ([30, 14, 7, 3, 1].includes(compDays)) {
                     new Notification(`תזכורת ${car.comprehensiveInsurance.type} - ${car.name}`, {
-                        body: `${car.comprehensiveInsurance.type} יפוג ${getDaysText(compDays)} (${car.comprehensiveInsurance.company})`,
-                        icon: '🛡️'
+                        body: `${car.comprehensiveInsurance.type} יפוג ${getDaysText(compDays)} (${car.comprehensiveInsurance.company})`
                     });
                 }
             });
@@ -779,14 +773,12 @@
 
         notificationBtn.addEventListener('click', enableNotifications);
 
-        // Check if notifications are already enabled
         if (Notification.permission === 'granted') {
             notificationBtn.disabled = true;
             notificationStatus.innerHTML = '<span class="enabled">✓ התראות מופעלות</span>';
         }
 
-        // Initial render
-        console.log('Initializing app with', cars.length, 'cars');
+        // Initial render - this happens immediately
         renderAlerts();
         renderCars();
 
